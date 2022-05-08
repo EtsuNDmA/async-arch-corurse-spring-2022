@@ -10,8 +10,7 @@ from app.deps import get_user_repository
 from app.schemas import Token, UserCreate, Role
 
 from app.schemas import UserRead
-from app.services import authenticate_user, create_access_token, get_current_active_user, register_user, \
-    get_current_user
+from app.services import authenticate_user, create_access_token, get_current_active_user, register_user
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
