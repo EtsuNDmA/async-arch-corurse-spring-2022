@@ -1,17 +1,38 @@
 version: '3.8'
 
 services:
-  broker:
+  auth:
+    build:
+      target: dev
+      context: ./auth
+      dockerfile: Dockerfile
+    image: auth:latest
+    container_name: auth
+    environment:
+      SECRET_KEY: '1d21aeb326d717605c05428ae56d7dbd10c4a3b2e07639a796c3736fd7174978'
+    volumes:
+      - ./auth/app:/popug/app
+    networks:
+      - popug-network
+    ports:
+      - '8080:8080'
+    restart: on-failure
+    depends_on:
+      - kafka
+      - postgresql
+    command: serve
+
+  kafka:
     image: confluentinc/cp-kafka:7.0.0
-    hostname: broker
-    container_name: broker
+    hostname: kafka
+    container_name: kafka
     ports:
       - "9092:9092"
       - "9101:9101"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092'
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
@@ -20,14 +41,18 @@ services:
       KAFKA_JMX_HOSTNAME: localhost
       KAFKA_PROCESS_ROLES: 'broker,controller'
       KAFKA_NODE_ID: 1
-      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@broker:29093'
-      KAFKA_LISTENERS: 'PLAINTEXT://broker:29092,CONTROLLER://broker:29093,PLAINTEXT_HOST://0.0.0.0:9092'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
+      KAFKA_LISTENERS: 'PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092'
       KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
     volumes:
-      - ./kafka_entrypoint.sh:/tmp/kafka_entrypoint.sh
+      - ./kafka-entrypoint.sh:/tmp/kafka-entrypoint.sh
     command: "bash -c 'if [ ! -f /tmp/kafka-entrypoint.sh ]; then echo \"ERROR: Did you forget the kafka-entrypoint.sh file that came with this docker-compose.yml file?\" && exit 1 ; else /tmp/kafka-entrypoint.sh && /etc/confluent/docker/run ; fi'"
+    logging:
+      driver: none
+    networks:
+      - popug-network
 
   postgresql:
     image: postgres:14.2
@@ -54,3 +79,10 @@ services:
         -c log_min_error_statement=panic
     logging:
       driver: none
+    networks:
+      - popug-network
+
+networks:
+  popug-network:
+    driver: bridge
+    name: popug-network
