@@ -63,6 +63,19 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
     return current_user
 
 
+async def get_user_by_id(
+        user_id: int,
+        current_user: User = Depends(get_current_user),
+        user_repository: UserRepository = Depends(get_user_repository),
+):
+    if not current_user.role == Role.ADMIN:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    user = user_repository.get_user_by_id(user_id)
+
+    return user
+
+
 async def register_user(
     user_to_create: UserCreate,
     user_repository: UserRepository,

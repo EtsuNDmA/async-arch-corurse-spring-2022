@@ -1,8 +1,11 @@
 from datetime import timedelta
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Form
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette import status
+from starlette.requests import Request
+from starlette.responses import RedirectResponse, HTMLResponse
+from starlette.templating import _TemplateResponse, Jinja2Templates
 
 from app.db.models import User
 from app.db.repositories import UserRepository
@@ -15,6 +18,45 @@ from app.services import authenticate_user, create_access_token, get_current_act
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 router = APIRouter()
+
+templates = Jinja2Templates(directory="app/templates")
+
+
+@router.get("/")
+async def redirect_to_dashboard() -> RedirectResponse:
+    return RedirectResponse("/login", status_code=302)
+
+
+@router.get(
+    "/login",
+    response_class=HTMLResponse,
+    description="Login",
+    name="dashboard",
+)
+def dashboard(request: Request) -> _TemplateResponse:
+    context = {"request": request}
+    return templates.TemplateResponse("login.html", context=context)
+
+
+@router.get(
+    "/register",
+    response_class=HTMLResponse,
+    description="Login",
+    name="login",
+)
+def dashboard(request: Request) -> _TemplateResponse:
+    available_roles = [r.value for r in Role]
+    context = {"request": request, "available_roles": available_roles}
+    return templates.TemplateResponse("register.html", context=context)
+
+
+@router.post("/register", response_model=UserRead, status_code=201)
+async def add_user(
+    user_to_create: UserCreate = Depends(UserCreate.as_form),
+    user_repository: UserRepository = Depends(get_user_repository)
+):
+    new_user = await register_user(user_to_create, user_repository)
+    return new_user
 
 
 @router.post("/token", response_model=Token)
