@@ -14,8 +14,7 @@ from app.schemas import Token, UserCreate, Role
 
 from app.schemas import UserRead
 from app.services import authenticate_user, create_access_token, get_current_active_user, register_user
-
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+from app.settings.config import settings
 
 router = APIRouter()
 
@@ -31,9 +30,9 @@ async def redirect_to_dashboard() -> RedirectResponse:
     "/login",
     response_class=HTMLResponse,
     description="Login",
-    name="dashboard",
+    name="login",
 )
-def dashboard(request: Request) -> _TemplateResponse:
+def show_login_form(request: Request) -> _TemplateResponse:
     context = {"request": request}
     return templates.TemplateResponse("login.html", context=context)
 
@@ -41,17 +40,23 @@ def dashboard(request: Request) -> _TemplateResponse:
 @router.get(
     "/register",
     response_class=HTMLResponse,
-    description="Login",
-    name="login",
+    description="Show registration form",
+    name="register",
 )
-def dashboard(request: Request) -> _TemplateResponse:
+def show_registration_form(request: Request) -> _TemplateResponse:
     available_roles = [r.value for r in Role]
     context = {"request": request, "available_roles": available_roles}
     return templates.TemplateResponse("register.html", context=context)
 
 
-@router.post("/register", response_model=UserRead, status_code=201)
-async def add_user(
+@router.post(
+    "/register",
+    description="Register new user",
+    name="register",
+    response_model=UserRead,
+    status_code=201,
+)
+async def register_new_user(
     user_to_create: UserCreate = Depends(UserCreate.as_form),
     user_repository: UserRepository = Depends(get_user_repository)
 ):
@@ -59,7 +64,12 @@ async def add_user(
     return new_user
 
 
-@router.post("/token", response_model=Token)
+@router.post(
+    "/token",
+    description="Get auth token",
+    name="token",
+    response_model=Token,
+)
 async def get_auth_token(
         form_data: OAuth2PasswordRequestForm = Depends(),
         user_repository: UserRepository = Depends(get_user_repository)
@@ -73,12 +83,18 @@ async def get_auth_token(
         )
     access_token = create_access_token(
         data={"sub": user.username},
-        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+        expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.post("/users", response_model=UserRead, status_code=201)
+@router.post(
+    "/users",
+    description="Register new user",
+    name="register",
+    response_model=UserRead,
+    status_code=201,
+)
 async def add_user(
     user_to_create: UserCreate,
     user_repository: UserRepository = Depends(get_user_repository),
