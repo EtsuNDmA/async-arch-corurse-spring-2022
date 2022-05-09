@@ -1,19 +1,22 @@
 from datetime import timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, Form
+from fastapi import APIRouter, Depends, Form, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette import status
 from starlette.requests import Request
-from starlette.responses import RedirectResponse, HTMLResponse
-from starlette.templating import _TemplateResponse, Jinja2Templates
+from starlette.responses import HTMLResponse, RedirectResponse
+from starlette.templating import Jinja2Templates, _TemplateResponse
 
 from app.db.models import User
 from app.db.repositories import UserRepository
 from app.deps import get_user_repository
-from app.schemas import Token, UserCreate, Role
-
-from app.schemas import UserRead
-from app.services import authenticate_user, create_access_token, get_current_active_user, register_user
+from app.schemas import Role, Token, UserCreate, UserRead
+from app.services import (
+    authenticate_user,
+    create_access_token,
+    get_current_active_user,
+    register_user,
+)
 from app.settings.config import settings
 
 router = APIRouter()
@@ -58,7 +61,7 @@ def show_registration_form(request: Request) -> _TemplateResponse:
 )
 async def register_new_user(
     user_to_create: UserCreate = Depends(UserCreate.as_form),
-    user_repository: UserRepository = Depends(get_user_repository)
+    user_repository: UserRepository = Depends(get_user_repository),
 ):
     new_user = await register_user(user_to_create, user_repository)
     return new_user
@@ -71,8 +74,7 @@ async def register_new_user(
     response_model=Token,
 )
 async def get_auth_token(
-        form_data: OAuth2PasswordRequestForm = Depends(),
-        user_repository: UserRepository = Depends(get_user_repository)
+    form_data: OAuth2PasswordRequestForm = Depends(), user_repository: UserRepository = Depends(get_user_repository)
 ):
     user = await authenticate_user(form_data.username, form_data.password, user_repository)
     if not user:

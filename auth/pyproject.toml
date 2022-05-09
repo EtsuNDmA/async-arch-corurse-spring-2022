@@ -18,6 +18,7 @@ loguru = "^0.6.0"
 asyncpg = "^0.25.0"
 pydantic = {extras = ["email"], version = "^1.9.0"}
 Jinja2 = "^3.1.2"
+fastapi-utils = "^0.2.1"
 
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"

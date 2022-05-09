@@ -1,21 +1,21 @@
-from datetime import timedelta, datetime
-from fastapi import HTTPException, Depends
-from jose import jwt, JWTError
+from datetime import datetime, timedelta
+
+from fastapi import Depends, HTTPException
+from jose import JWTError, jwt
 from starlette import status
 
 from app.db.models import User
 from app.db.repositories import UserRepository
 from app.deps import get_user_repository
-from app.schemas import TokenData, UserCreate, Role
-from app.security import verify_password, oauth2_scheme
-
+from app.schemas import Role, TokenData, UserCreate
+from app.security import oauth2_scheme, verify_password
 from app.settings.config import settings
 
 
 async def authenticate_user(
-        username: str,
-        password: str,
-        user_repository: UserRepository,
+    username: str,
+    password: str,
+    user_repository: UserRepository,
 ) -> User | None:
     user = await user_repository.get_user_by_username(username)
     if not user:
@@ -64,9 +64,9 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
 
 
 async def get_user_by_id(
-        user_id: int,
-        current_user: User = Depends(get_current_user),
-        user_repository: UserRepository = Depends(get_user_repository),
+    user_id: int,
+    current_user: User = Depends(get_current_user),
+    user_repository: UserRepository = Depends(get_user_repository),
 ):
     if not current_user.role == Role.ADMIN:
         raise HTTPException(status_code=403, detail="Forbidden")

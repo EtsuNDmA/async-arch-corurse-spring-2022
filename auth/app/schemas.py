@@ -1,8 +1,10 @@
 import inspect
 from typing import Type
+from uuid import UUID
 
 from fastapi import Form
 from pydantic import BaseModel, EmailStr
+from pydantic.fields import ModelField
 
 from app.db.models import Role
 
@@ -11,7 +13,7 @@ def as_form(cls: Type[BaseModel]):
     new_parameters = []
 
     for field_name, model_field in cls.__fields__.items():
-        model_field: ModelField  # type: ignore
+        model_field: ModelField
 
         new_parameters.append(
             inspect.Parameter(
@@ -28,7 +30,7 @@ def as_form(cls: Type[BaseModel]):
     sig = inspect.signature(as_form_func)
     sig = sig.replace(parameters=new_parameters)
     as_form_func.__signature__ = sig  # type: ignore
-    setattr(cls, 'as_form', as_form_func)
+    setattr(cls, "as_form", as_form_func)
     return cls
 
 
@@ -50,11 +52,11 @@ class UserCreate(BaseModel):
 
 
 class UserRead(BaseModel):
-    id: int
+    id: UUID
     username: str
     is_active: bool
     email: EmailStr
-
     role: str
+
     class Config:
         orm_mode = True
