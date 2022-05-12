@@ -23,6 +23,11 @@ class AppSettings(BaseSettings):
     PG_PORT: int = 5432
     PG_DB: str
 
+    OAUTH_TOKEN_URL: str
+
+    SECRET_KEY: str
+    ALGORITHM = "HS256"
+
     @property
     def database_connection_url(self):
         return f"postgresql+asyncpg://{self.PG_USER}:{self.PG_PASSWORD}@{self.PG_HOST}:{self.PG_PORT}/{self.PG_DB}"

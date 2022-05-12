@@ -7,16 +7,11 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, RedirectResponse
 from starlette.templating import Jinja2Templates, _TemplateResponse
 
+from app.api.deps import get_current_active_user, get_user_repository
+from app.api.schemas import Role, Token, UserWrite, UserRead
 from app.db.models import User
 from app.db.repositories import UserRepository
-from app.api.deps import get_user_repository
-from app.api.schemas import Role, Token, UserCreate, UserRead
-from app.services import (
-    authenticate_user,
-    create_access_token,
-    get_current_active_user,
-    register_user,
-)
+from app.security import authenticate_user, create_access_token
 from app.settings.config import settings
 
 router = APIRouter()
@@ -25,7 +20,7 @@ templates = Jinja2Templates(directory="app/api/templates")
 
 
 @router.get("/")
-async def redirect_to_users() -> RedirectResponse:
+async def redirect_to_login() -> RedirectResponse:
     return RedirectResponse("/login", status_code=302)
 
 
@@ -50,21 +45,6 @@ def show_registration_form(request: Request) -> _TemplateResponse:
     available_roles = [r.value for r in Role]
     context = {"request": request, "available_roles": available_roles}
     return templates.TemplateResponse("register.html", context=context)
-
-
-@router.post(
-    "/register",
-    description="Register new user",
-    name="register",
-    response_model=UserRead,
-    status_code=201,
-)
-async def register_new_user(
-    user_to_create: UserCreate = Depends(UserCreate.as_form),
-    user_repository: UserRepository = Depends(get_user_repository),
-):
-    await register_user(user_to_create, user_repository)
-    return RedirectResponse(url="/user/me", status_code=302)
 
 
 @router.get(
@@ -129,7 +109,7 @@ async def get_auth_token(
 )
 async def read_all_users(
     user_repository: UserRepository = Depends(get_user_repository),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_active_user),
 ):
     if current_user.role != Role.ADMIN:
         raise HTTPException(status_code=403, detail="Forbidden")
@@ -145,10 +125,10 @@ async def read_all_users(
     status_code=201,
 )
 async def create_user(
-    user_to_create: UserCreate,
+    user_to_create: UserWrite,
     user_repository: UserRepository = Depends(get_user_repository),
 ):
-    new_user: User = await register_user(user_to_create, user_repository)
+    new_user = await user_repository.create_new_user(user_to_create)
     return new_user
 
 

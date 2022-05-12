@@ -1,8 +1,8 @@
-from enum import Enum
+from uuid import UUID
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 
-from app.db.models import Role
+from app.db.models import TaskStatus
 
 
 class Token(BaseModel):
@@ -14,10 +14,19 @@ class TokenData(BaseModel):
     username: str | None = None
 
 
-class UserRead(BaseModel):
+class UserWrite(BaseModel):
+    id: int
+    public_id: UUID
     username: str
     is_active: bool
-    email: EmailStr
+    role: str
+
+
+class UserRead(BaseModel):
+    id: int
+    public_id: UUID
+    username: str
+    is_active: bool
     role: str
 
     class Config:
@@ -26,10 +35,13 @@ class UserRead(BaseModel):
 
 class TaskWrite(BaseModel):
     description: str
-    status: str
 
 
 class TaskRead(BaseModel):
+    public_id: UUID
     description: str
-    status: str
+    status: TaskStatus
     assignee: UserRead
+
+    class Config:
+        orm_mode = True

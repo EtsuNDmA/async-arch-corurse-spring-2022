@@ -7,9 +7,8 @@ services:
       context: ./auth
       dockerfile: Dockerfile
     image: auth:latest
+    hostname: auth
     container_name: auth
-    environment:
-      SECRET_KEY: '1d21aeb326d717605c05428ae56d7dbd10c4a3b2e07639a796c3736fd7174978'
     volumes:
       - ./auth/app:/popug/app
     networks:
@@ -28,6 +27,7 @@ services:
       context: ./tracker
       dockerfile: Dockerfile
     image: tracker:latest
+    hostname: tracker
     container_name: tracker
     volumes:
       - ./tracker/app:/popug/app

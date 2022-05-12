@@ -4,8 +4,8 @@ import uvloop
 from fastapi import FastAPI
 from loguru import logger
 
-from app.db.session import Database
 from app.api.routers import router
+from app.db.session import Database
 from app.settings.config import AppSettings, settings
 from app.settings.logger import configure_logger
 

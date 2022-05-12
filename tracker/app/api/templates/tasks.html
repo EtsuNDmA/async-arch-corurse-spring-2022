@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block extra_head %}
+<script>
+    getTasks = async function () {
+        const tasksData = await fetchAuthorized("/api/tasks")
+            .then((response) => {
+                if (response.ok) {
+                    return response.json();
+                }
+                return Promise.reject(response);
+            })
+            .catch((response) => {
+                console.log(response.status, response.statusText);
+                response.json().then((json) => {
+                    console.log(json);
+                });
+                createAlert(response.statusText,'','','danger',true,false,'pageMessages');
+            });
+        console.log(tasksData)
+        if (tasksData) tasksData.forEach(renderUser);
+    }
+
+    renderUser = function (task) {
+        let tasksTable = document.getElementById("tasks-table");
+        let tr = document.createElement('tr');
+        renderCol(tr, task.public_id)
+        renderCol(tr, task.description)
+        renderCol(tr, task.status)
+        renderCol(tr, task.assignee.public_id)
+        renderCol(tr, task.assignee.username)
+        tasksTable.appendChild(tr);
+    }
+
+    renderCol = function (tr, data) {
+        let td = tr.appendChild(document.createElement('td'));
+        td.appendChild(document.createTextNode(data));
+    }
+
+    getTasks()
+
+</script>
+{% endblock %}
+
+{% block content %}
+
+<div id="container" class="container-md">
+    <div id="pageMessages"></div>
+    <table id="tasks-table" class="table table-hover">
+        <thead>
+        <tr>
+            <th scope="col">Public Id</th>
+            <th scope="col">Description</th>
+            <th scope="col">Status</th>
+            <th scope="col">Assignee Public Id</th>
+            <th scope="col">Assignee Username</th>
+        </tr>
+        </thead>
+    </table>
+</div>
+{% endblock %}

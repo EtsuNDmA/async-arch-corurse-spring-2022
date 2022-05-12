@@ -3,9 +3,9 @@ from uuid import UUID
 
 from sqlalchemy import select, update
 
+from app.api.schemas import UserWrite
 from app.db.models import Role, User
 from app.db.session import Database
-from app.api.schemas import UserCreate
 
 
 @dataclass
@@ -30,7 +30,7 @@ class UserRepository:
             user = await session.execute(query)
             return user.scalar()
 
-    async def create_new_user(self, user_to_create: UserCreate) -> User:
+    async def create_new_user(self, user_to_create: UserWrite) -> User:
         from app.security import get_password_hash
 
         user = User(

@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 
 from fastapi_utils.guid_type import GUID
-from sqlalchemy import Boolean, Column, Enum, String, DateTime, Integer
+from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, String
 
 from app.db.session import Base
 

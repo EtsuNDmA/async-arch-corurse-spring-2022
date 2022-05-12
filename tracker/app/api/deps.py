@@ -5,7 +5,7 @@ from starlette.requests import Request
 
 from app.api.schemas import TokenData
 from app.db.models import User
-from app.db.repositories import UserRepository
+from app.db.repositories import TaskRepository, UserRepository
 from app.db.session import Database
 from app.security import oauth2_scheme
 from app.settings.config import settings
@@ -17,6 +17,10 @@ def get_database(request: Request) -> Database:
 
 def get_user_repository(db: Database = Depends(get_database, use_cache=True)) -> UserRepository:
     return UserRepository(db=db)
+
+
+def get_task_repository(db: Database = Depends(get_database, use_cache=True)) -> TaskRepository:
+    return TaskRepository(db=db)
 
 
 async def get_current_user(

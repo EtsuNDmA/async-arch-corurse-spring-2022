@@ -44,7 +44,7 @@ class TokenData(BaseModel):
 
 
 @as_form
-class UserCreate(BaseModel):
+class UserWrite(BaseModel):
     username: str
     password: str
     email: EmailStr
