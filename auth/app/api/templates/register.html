@@ -33,14 +33,16 @@
         const loginForm = document.registerForm;
         const formData = new FormData(loginForm);
         const data = Object.fromEntries(formData.entries())
-        console.log(formData)
-        console.log(formData.entries())
-        console.log(data)
-        await fetch('/api/users', {
+
+        const response = await fetch('/api/users', {
             method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
             body: JSON.stringify(data),
         })
         .catch(console.error)
+        console.log(response)
 
         window.location.replace("/login");
     }
