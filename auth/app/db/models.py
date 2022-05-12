@@ -1,8 +1,9 @@
 import enum
 import uuid
+from datetime import datetime
 
 from fastapi_utils.guid_type import GUID
-from sqlalchemy import Boolean, Column, Enum, String
+from sqlalchemy import Boolean, Column, Enum, String, DateTime, Integer
 
 from app.db.session import Base
 
@@ -15,9 +16,12 @@ class Role(str, enum.Enum):
 
 
 class User(Base):
-    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    id = Column(Integer, primary_key=True)
+    public_id = Column(GUID, default=uuid.uuid4)
     username = Column(String, unique=True, nullable=False, index=True)
-    email = Column(String, nullable=False, unique=True, index=True)
+    email = Column(String, unique=True, nullable=False, index=True)
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean(), default=True)
     role = Column(Enum(Role), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.now)
+    updated_at = Column(DateTime(timezone=True), default=datetime.now, onupdate=datetime.now)

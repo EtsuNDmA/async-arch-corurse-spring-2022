@@ -1,19 +1,13 @@
-from datetime import timedelta
-
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import OAuth2PasswordRequestForm
-from starlette import status
 from starlette.requests import Request
-from starlette.responses import RedirectResponse, HTMLResponse
+from starlette.responses import HTMLResponse, RedirectResponse
 from starlette.templating import Jinja2Templates, _TemplateResponse
 
 from app.db.models import User
-from app.db.repositories import UserRepository
-from app.deps import get_user_repository
-from app.schemas import Role
-
-from app.schemas import UserRead
-from app.services import get_current_active_user
+from app.db.repositories import TaskRepository, UserRepository
+from app.deps import get_task_repository, get_user_repository
+from app.schemas import TaskRead, TaskWrite, UserRead
+from app.services import get_current_active_user, get_current_user
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
@@ -36,23 +30,25 @@ async def redirect_to_dashboard() -> RedirectResponse:
 )
 def dashboard(request: Request) -> _TemplateResponse:
     context = {"request": request}
-    return templates.TemplateResponse("dashboard.html", context=context)
+    return templates.TemplateResponse("login.html", context=context)
 
 
 @router.get("/users/me", response_model=UserRead)
-async def read_users_me(current_user: User = Depends(get_current_active_user)):
+async def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user
 
 
-@router.get("/users/{user_id}", response_model=UserRead)
-async def read_users_by_id(
-    user_id: int,
-    current_user: User = Depends(get_current_active_user),
+@router.post("/tasks", response_model=TaskRead)
+async def create_task(
+    task_to_create: TaskWrite,
+    task_repository: TaskRepository = Depends(get_task_repository),
     user_repository: UserRepository = Depends(get_user_repository),
 ):
-    if not current_user.role == Role.ADMIN:
-        raise HTTPException(status_code=403, detail="Forbidden")
+    return await task_repository.create_new_task(
+        task_to_create,
+    )
 
-    user = user_repository.get_user_by_id(user_id)
 
-    return user
+@router.get("/tasks", response_model=TaskRead)
+async def read_users_me(current_user: User = Depends(get_current_user)):
+    return current_user

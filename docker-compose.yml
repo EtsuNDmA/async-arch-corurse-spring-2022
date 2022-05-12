@@ -15,7 +15,7 @@ services:
     networks:
       - popug-network
     ports:
-      - '8080:8080'
+      - '8085:8080'
     restart: on-failure
     depends_on:
       - kafka
@@ -34,7 +34,7 @@ services:
     networks:
       - popug-network
     ports:
-      - '8081:8080'
+      - '8086:8080'
     restart: on-failure
     depends_on:
       - kafka
@@ -47,7 +47,6 @@ services:
     container_name: kafka
     ports:
       - "9092:9092"
-      - "9101:9101"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'

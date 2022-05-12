@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from fastapi import APIRouter, Depends, Form, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette import status
 from starlette.requests import Request
@@ -9,8 +9,8 @@ from starlette.templating import Jinja2Templates, _TemplateResponse
 
 from app.db.models import User
 from app.db.repositories import UserRepository
-from app.deps import get_user_repository
-from app.schemas import Role, Token, UserCreate, UserRead
+from app.api.deps import get_user_repository
+from app.api.schemas import Role, Token, UserCreate, UserRead
 from app.services import (
     authenticate_user,
     create_access_token,
@@ -21,11 +21,11 @@ from app.settings.config import settings
 
 router = APIRouter()
 
-templates = Jinja2Templates(directory="app/templates")
+templates = Jinja2Templates(directory="app/api/templates")
 
 
 @router.get("/")
-async def redirect_to_dashboard() -> RedirectResponse:
+async def redirect_to_users() -> RedirectResponse:
     return RedirectResponse("/login", status_code=302)
 
 
@@ -63,18 +63,49 @@ async def register_new_user(
     user_to_create: UserCreate = Depends(UserCreate.as_form),
     user_repository: UserRepository = Depends(get_user_repository),
 ):
-    new_user = await register_user(user_to_create, user_repository)
-    return new_user
+    await register_user(user_to_create, user_repository)
+    return RedirectResponse(url="/user/me", status_code=302)
+
+
+@router.get(
+    "/users",
+    response_class=HTMLResponse,
+    description="Get all users",
+    name="users-list",
+)
+def get_all_users(
+    request: Request,
+) -> _TemplateResponse:
+    context = {
+        "request": request,
+    }
+    return templates.TemplateResponse("users.html", context=context)
+
+
+@router.get(
+    "/users/me",
+    response_class=HTMLResponse,
+    description="Get current user",
+    name="users-me",
+)
+def get_current_user(
+    request: Request,
+) -> _TemplateResponse:
+    context = {
+        "request": request,
+    }
+    return templates.TemplateResponse("users_me.html", context=context)
 
 
 @router.post(
-    "/token",
+    "/api/token",
     description="Get auth token",
     name="token",
     response_model=Token,
 )
 async def get_auth_token(
-    form_data: OAuth2PasswordRequestForm = Depends(), user_repository: UserRepository = Depends(get_user_repository)
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    user_repository: UserRepository = Depends(get_user_repository),
 ):
     user = await authenticate_user(form_data.username, form_data.password, user_repository)
     if not user:
@@ -90,35 +121,51 @@ async def get_auth_token(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
+@router.get(
+    "/api/users",
+    description="Get all users",
+    name="users-list",
+    response_model=list[UserRead],
+)
+async def read_all_users(
+    user_repository: UserRepository = Depends(get_user_repository),
+    current_user: User = Depends(get_current_active_user)
+):
+    if current_user.role != Role.ADMIN:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    users = await user_repository.get_all_users()
+    return users
+
+
 @router.post(
-    "/users",
+    "/api/users",
     description="Register new user",
     name="register",
     response_model=UserRead,
     status_code=201,
 )
-async def add_user(
+async def create_user(
     user_to_create: UserCreate,
     user_repository: UserRepository = Depends(get_user_repository),
 ):
-    new_user = await register_user(user_to_create, user_repository)
+    new_user: User = await register_user(user_to_create, user_repository)
     return new_user
 
 
-@router.get("/users/me", response_model=UserRead)
+@router.get("/api/users/me", response_model=UserRead)
 async def read_users_me(current_user: User = Depends(get_current_active_user)):
     return current_user
 
 
-@router.get("/users/{user_id}", response_model=UserRead)
-async def read_users_by_id(
-    user_id: int,
+@router.get("/api/users/{username}", response_model=UserRead)
+async def read_users_by_username(
+    username: str,
     current_user: User = Depends(get_current_active_user),
     user_repository: UserRepository = Depends(get_user_repository),
 ):
     if not current_user.role == Role.ADMIN:
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    user = user_repository.get_user_by_id(user_id)
+    user = user_repository.get_user_by_username(username)
 
     return user

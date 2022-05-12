@@ -1,3 +1,5 @@
+from enum import Enum
+
 from pydantic import BaseModel, EmailStr
 
 from app.db.models import Role
@@ -13,7 +15,6 @@ class TokenData(BaseModel):
 
 
 class UserRead(BaseModel):
-    id: int
     username: str
     is_active: bool
     email: EmailStr
@@ -21,3 +22,14 @@ class UserRead(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class TaskWrite(BaseModel):
+    description: str
+    status: str
+
+
+class TaskRead(BaseModel):
+    description: str
+    status: str
+    assignee: UserRead

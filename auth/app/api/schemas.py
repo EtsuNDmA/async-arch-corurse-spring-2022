@@ -52,7 +52,8 @@ class UserCreate(BaseModel):
 
 
 class UserRead(BaseModel):
-    id: UUID
+    id: int
+    public_id: UUID
     username: str
     is_active: bool
     email: EmailStr

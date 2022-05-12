@@ -5,12 +5,18 @@ from sqlalchemy import select, update
 
 from app.db.models import Role, User
 from app.db.session import Database
-from app.schemas import UserCreate
+from app.api.schemas import UserCreate
 
 
 @dataclass
 class UserRepository:
     db: Database
+
+    async def get_all_users(self) -> list[User]:
+        query = select(User).order_by("id")
+        async with self.db.session() as session:
+            users = await session.execute(query)
+            return users.scalars().all()
 
     async def get_user_by_id(self, user_id: UUID) -> User | None:
         query = select(User).filter_by(id=user_id)

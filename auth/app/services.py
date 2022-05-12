@@ -6,8 +6,8 @@ from starlette import status
 
 from app.db.models import User
 from app.db.repositories import UserRepository
-from app.deps import get_user_repository
-from app.schemas import Role, TokenData, UserCreate
+from app.api.deps import get_user_repository
+from app.api.schemas import Role, TokenData, UserCreate
 from app.security import oauth2_scheme, verify_password
 from app.settings.config import settings
 
@@ -48,7 +48,7 @@ async def get_current_user(
         if username is None:
             raise credentials_exception
         token_data = TokenData(username=username)
-    except JWTError:
+    except JWTError as exc:
         raise credentials_exception
 
     user = await user_repository.get_user_by_username(username=token_data.username)

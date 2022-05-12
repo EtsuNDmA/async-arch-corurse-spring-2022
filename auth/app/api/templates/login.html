@@ -28,11 +28,28 @@
         font-weight: bold;
     }
 </style>
+<script>
+    async function login() {
+        let loginForm = document.loginForm;
+        let formData = new FormData(loginForm);
+        console.log(loginForm)
+        const response = await fetch('/api/token', {
+            method: 'POST',
+            body: formData,
+        })
+        .catch(console.error)
+
+        const data = await response.json()
+
+        localStorage.setItem('access_token', data.access_token)
+        window.location.replace("/users/me");
+    }
+</script>
 {% endblock %}
 
 {% block content %}
 <div class="login-form">
-    <form action="/token" method="post" data-bitwarden-watching="1">
+    <form name="loginForm">
         <h2 class="text-center">Log in</h2>
         <div class="form-group">
             <input type="text" class="form-control" placeholder="Username" required="required" name="username">
@@ -41,7 +58,7 @@
             <input type="password" class="form-control" placeholder="Password" required="required" name="password">
         </div>
         <div class="form-group">
-            <button type="submit" class="btn btn-primary btn-block">Log in</button>
+            <button type="button" class="btn btn-primary btn-block" onclick="login()">Log in</button>
         </div>
     </form>
     <p class="text-center"><a href="/register">Зарегистрироваться</a></p>

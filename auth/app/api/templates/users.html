@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block extra_head %}
+<script>
+    getUsers = async function () {
+        const usersData = await fetchAuthorized("/api/users")
+            .then((response) => {
+                if (response.ok) {
+                    return response.json();
+                }
+                return Promise.reject(response);
+            })
+            .catch((response) => {
+                console.log(response.status, response.statusText);
+                response.json().then((json) => {
+                    console.log(json);
+                });
+                createAlert(response.statusText,'','','danger',true,false,'pageMessages');
+            });
+        console.log(usersData)
+        if (usersData) usersData.forEach(renderUser);
+    }
+
+    renderUser = function (user) {
+        let usersTable = document.getElementById("users-table");
+        let tr = document.createElement('tr');
+        renderCol(tr, user.public_id)
+        renderCol(tr, user.username)
+        renderCol(tr, user.email)
+        renderCol(tr, user.role)
+        renderCol(tr, user.is_active)
+        usersTable.appendChild(tr);
+    }
+
+    renderCol = function (tr, data) {
+        let td = tr.appendChild(document.createElement('td'));
+        td.appendChild(document.createTextNode(data));
+    }
+
+    getUsers()
+
+</script>
+{% endblock %}
+
+{% block content %}
+
+<div id="container" class="container-md">
+    <div id="pageMessages"></div>
+    <table id="users-table" class="table table-hover">
+        <thead>
+        <tr>
+            <th scope="col">Public Id</th>
+            <th scope="col">Username</th>
+            <th scope="col">Email</th>
+            <th scope="col">Role</th>
+            <th scope="col">Is Active</th>
+        </tr>
+        </thead>
+    </table>
+</div>
+{% endblock %}
