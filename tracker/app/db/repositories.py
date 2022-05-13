@@ -8,6 +8,8 @@ from app.api.schemas import TaskWrite, UserWrite
 from app.db.models import Role, Task, User
 from app.db.session import Database
 
+CAN_BE_TASK_ASSIGNEE = (Role.DEVELOPER, Role.ACCOUNTANT)
+
 
 @dataclass
 class UserRepository:
@@ -68,8 +70,10 @@ class TaskRepository:
 
     async def create_task(self, task_to_create: TaskWrite) -> Task:
         async with self.db.session() as session:
-            assignee_id = (await session.execute(select(User).order_by(func.random()))).scalars().one().id
-            task = Task(assignee_id=assignee_id, **task_to_create.dict())
+            random_assignee_id = (
+                select(User.id).where(User.role.in_(CAN_BE_TASK_ASSIGNEE)).order_by(func.random()).limit(1)
+            )
+            task = Task(assignee_id=random_assignee_id, **task_to_create.dict())
             session.add(task)
             await session.commit()
         return await self.get_task_by_id(task.id)
@@ -77,7 +81,10 @@ class TaskRepository:
     async def shuffle_tasks(self) -> None:
         random_assignee_id = (
             select(User.id)
-            .where(Task.id > 0)  # we need correlation to create random assignee_id for each row
+            .where(
+                Task.id > 0,  # we need correlation to create random assignee_id for each row
+                User.role.in_(CAN_BE_TASK_ASSIGNEE),
+            )
             .order_by(func.random())
             .limit(1)
             .scalar_subquery()

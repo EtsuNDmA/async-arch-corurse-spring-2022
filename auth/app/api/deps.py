@@ -34,7 +34,7 @@ async def get_current_user(
         if username is None:
             raise credentials_exception
         token_data = TokenData(username=username)
-    except JWTError as exc:
+    except JWTError:
         raise credentials_exception
 
     user = await user_repository.get_user_by_username(username=token_data.username)

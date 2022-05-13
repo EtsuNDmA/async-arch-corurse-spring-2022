@@ -16,7 +16,6 @@
                 });
                 createAlert(response.statusText, '', '', 'danger', true, false, 'pageMessages');
             });
-        console.log(tasksData)
         if (tasksData) tasksData.forEach(renderTask);
     }
 
@@ -79,6 +78,7 @@
             .then((response) => {
                 if (response.ok) {
                     document.location.reload();
+                    return
                 }
                 return Promise.reject(response);
             })
@@ -100,6 +100,7 @@
 {% block content %}
 
 <div id="container" class="container-md">
+    <div id="currentUser"></div>
     <div id="pageMessages"></div>
     <!-- Button trigger modal -->
     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">

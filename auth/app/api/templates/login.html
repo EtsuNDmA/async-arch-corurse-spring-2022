@@ -30,24 +30,33 @@
 </style>
 <script>
     async function login() {
-        let loginForm = document.loginForm;
-        let formData = new FormData(loginForm);
-        console.log(loginForm)
-        const response = await fetch('/api/token', {
+        const loginForm = document.loginForm;
+        const formData = new FormData(loginForm);
+        const data = await fetch('/api/token', {
             method: 'POST',
             body: formData,
         })
-        .catch(console.error)
-
-        const data = await response.json()
-
+            .then((response) => {
+                if (response.ok) {
+                    return response.json();
+                }
+                return Promise.reject(response);
+            })
+            .catch((response) => {
+                console.log(response.status, response.statusText);
+                response.json().then((json) => {
+                    console.log(json);
+                });
+                createAlert(response.statusText, '', '', 'danger', true, false, 'pageMessages');
+            });
         localStorage.setItem('access_token', data.access_token)
-        window.location.replace("/users/me");
+        window.location.replace("/tasks");
     }
 </script>
 {% endblock %}
 
 {% block content %}
+<div id="pageMessages"></div>
 <div class="login-form">
     <form name="loginForm">
         <h2 class="text-center">Log in</h2>
