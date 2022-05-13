@@ -95,7 +95,6 @@ async def read_all_tasks(
     if current_user.role != Role.ADMIN:
         raise HTTPException(status_code=403, detail="Forbidden")
     tasks = await task_repository.get_all_tasks()
-    print(tasks[0].assignee_id)
     return tasks
 
 
@@ -109,8 +108,22 @@ async def read_all_tasks(
 async def create_task(
     task_to_create: TaskWrite,
     task_repository: TaskRepository = Depends(get_task_repository),
+    current_user: User = Depends(get_current_active_user),
 ) -> Task:
     new_task: Task = await task_repository.create_task(task_to_create)
+    return new_task
+
+
+@router.post(
+    "/api/tasks/shuffle",
+    description="Shuffle tasks",
+    name="shuffle-task",
+)
+async def create_task(
+    task_repository: TaskRepository = Depends(get_task_repository),
+    current_user: User = Depends(get_current_active_user),
+) -> Task:
+    new_task: Task = await task_repository.shuffle_tasks()
     return new_task
 
 
