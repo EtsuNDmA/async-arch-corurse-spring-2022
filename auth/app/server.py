@@ -1,6 +1,7 @@
 import asyncio
 
 import uvloop
+from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
 from fastapi import FastAPI
 from loguru import logger
 
@@ -33,8 +34,12 @@ class Application:
     def configure_hooks(self) -> None:
         self.setup_exception_handlers()
         self.app.add_event_handler("startup", self.create_databases_and_tables)
+        self.app.add_event_handler("startup", self.create_kafka_producer)
+        self.app.add_event_handler("startup", self.create_kafka_consumer)
 
         self.app.add_event_handler("shutdown", self.close_database_pool)
+        self.app.add_event_handler("shutdown", self.close_kafka_producer)
+        self.app.add_event_handler("shutdown", self.close_kafka_consumer)
 
     def register_urls(self) -> None:
         self.app.include_router(router)
@@ -52,6 +57,24 @@ class Application:
         )
         logger.info("Creating database connection")
         self.app.state.db = db
+
+    async def create_kafka_producer(self) -> None:
+        producer = AIOKafkaProducer(bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVERS)
+        await producer.start()
+        self.app.state.producer = producer
+
+    async def close_kafka_producer(self) -> None:
+        producer = self.app.state.producer
+        await producer.stop()
+
+    async def create_kafka_consumer(self) -> None:
+        consumer = AIOKafkaConsumer(bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVERS)
+        await consumer.start()
+        self.app.state.consumer = consumer
+
+    async def close_kafka_consumer(self) -> None:
+        consumer = self.app.state.consumer
+        await consumer.stop()
 
     async def close_database_pool(self) -> None:
         logger.info("Closing database pool")

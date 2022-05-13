@@ -9,11 +9,11 @@ serve() {
 
   export HOST=${APP_HOST:-0.0.0.0}
   export PORT=${APP_PORT:-8080}
-  exec python -m uvicorn app.main:app --host "${HOST}" --port "${PORT}" --reload
+  exec python -m uvicorn app.server:app --host "${HOST}" --port "${PORT}" --reload
 }
 
 wait_for_kafka() {
-  until kafkacat -b "${KAFKA_BOOTSTRAP_SERVERS:-kafka}" -L  > /dev/null 2>&1
+  until kafkacat -b "${KAFKA_BOOTSTRAP_SERVERS:-kafka:29092}" -L  > /dev/null 2>&1
   do
     echo "Waiting for kafka ..."
     sleep 1

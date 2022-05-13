@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from aiokafka import AIOKafkaProducer
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette import status
@@ -7,7 +8,7 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, RedirectResponse
 from starlette.templating import Jinja2Templates, _TemplateResponse
 
-from app.api.deps import get_current_active_user, get_user_repository
+from app.api.deps import get_current_active_user, get_user_repository, get_kafka_producer
 from app.api.schemas import Role, Token, UserRead, UserWrite
 from app.db.models import User
 from app.db.repositories import UserRepository
@@ -127,8 +128,10 @@ async def read_all_users(
 async def create_user(
     user_to_create: UserWrite,
     user_repository: UserRepository = Depends(get_user_repository),
+    kafka_producer: AIOKafkaProducer = Depends(get_kafka_producer),
 ):
     new_user = await user_repository.create_new_user(user_to_create)
+    await kafka_producer.send("User.Streaming", UserRead.from_orm(new_user).json().encode())
     return new_user
 
 

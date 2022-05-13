@@ -1,3 +1,4 @@
+from aiokafka import AIOKafkaProducer
 from fastapi import Depends, HTTPException
 from jose import JWTError, jwt
 from starlette import status
@@ -17,6 +18,10 @@ def get_database(request: Request) -> Database:
 
 def get_user_repository(db: Database = Depends(get_database, use_cache=True)) -> UserRepository:
     return UserRepository(db=db)
+
+
+def get_kafka_producer(request: Request) -> AIOKafkaProducer:
+    return request.app.state.producer
 
 
 async def get_current_user(

@@ -1,6 +1,7 @@
 import asyncio
 
 import uvloop
+from aiokafka import AIOKafkaProducer
 from fastapi import FastAPI
 from loguru import logger
 
@@ -33,8 +34,10 @@ class Application:
     def configure_hooks(self) -> None:
         self.setup_exception_handlers()
         self.app.add_event_handler("startup", self.create_databases_and_tables)
+        self.app.add_event_handler("startup", self.create_kafka_producer)
 
         self.app.add_event_handler("shutdown", self.close_database_pool)
+        self.app.add_event_handler("shutdown", self.close_kafka_producer)
 
     def register_urls(self) -> None:
         self.app.include_router(router)
@@ -63,6 +66,15 @@ class Application:
     async def create_databases_and_tables(self) -> None:
         await self.create_database_pool()
         await self.app.state.db.create_tables()
+
+    async def create_kafka_producer(self) -> None:
+        producer = AIOKafkaProducer(bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVERS)
+        await producer.start()
+        self.app.state.producer = producer
+
+    async def close_kafka_producer(self) -> None:
+        producer = self.app.state.producer
+        await producer.stop()
 
 
 app = Application(settings=settings).fastapi_app

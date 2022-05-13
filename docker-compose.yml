@@ -1,14 +1,14 @@
 version: '3.8'
 
 services:
-  auth:
+  auth-server:
     build:
       target: dev
       context: ./auth
       dockerfile: Dockerfile
     image: auth:latest
-    hostname: auth
-    container_name: auth
+    hostname: auth-server
+    container_name: auth-server
     volumes:
       - ./auth/app:/popug/app
     networks:
@@ -21,14 +21,14 @@ services:
       - postgresql
     command: serve
 
-  tracker:
+  tracker-server:
     build:
       target: dev
       context: ./tracker
       dockerfile: Dockerfile
     image: tracker:latest
-    hostname: tracker
-    container_name: tracker
+    hostname: tracker-server
+    container_name: tracker-server
     volumes:
       - ./tracker/app:/popug/app
     networks:
@@ -40,6 +40,24 @@ services:
       - kafka
       - postgresql
     command: serve
+
+  tracker-consumer:
+    build:
+      target: dev
+      context: ./tracker
+      dockerfile: Dockerfile
+    image: tracker:latest
+    hostname: tracker-consumer
+    container_name: tracker-consumer
+    volumes:
+      - ./tracker/app:/popug/app
+    networks:
+      - popug-network
+    restart: on-failure
+    depends_on:
+      - kafka
+      - postgresql
+    command: consume
 
   kafka:
     image: confluentinc/cp-kafka:7.0.0

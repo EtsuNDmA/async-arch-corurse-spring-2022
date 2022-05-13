@@ -15,7 +15,6 @@ class TokenData(BaseModel):
 
 
 class UserWrite(BaseModel):
-    id: int
     public_id: UUID
     username: str
     is_active: bool
