@@ -2,11 +2,10 @@ import enum
 import uuid
 from datetime import datetime
 
+from app.db.session import Base
 from fastapi_utils.guid_type import GUID
 from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
-
-from app.db.session import Base
 
 
 class Role(str, enum.Enum):
@@ -37,4 +36,6 @@ class Task(Base):
     assignee_id = Column(Integer, ForeignKey("user.id"), nullable=False)
     assignee = relationship("User")
     created_at = Column(DateTime(timezone=True), default=datetime.now)
-    updated_at = Column(DateTime(timezone=True), default=datetime.now, onupdate=datetime.now)
+    updated_at = Column(
+        DateTime(timezone=True), default=datetime.now, onupdate=datetime.now
+    )

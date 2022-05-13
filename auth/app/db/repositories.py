@@ -1,11 +1,10 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from sqlalchemy import select, update
-
 from app.api.schemas import UserWrite
 from app.db.models import Role, User
 from app.db.session import Database
+from sqlalchemy import select, update
 
 
 @dataclass

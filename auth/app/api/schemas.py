@@ -2,11 +2,10 @@ import inspect
 from typing import Type
 from uuid import UUID
 
+from app.db.models import Role
 from fastapi import Form
 from pydantic import BaseModel, EmailStr
 from pydantic.fields import ModelField
-
-from app.db.models import Role
 
 
 def as_form(cls: Type[BaseModel]):
@@ -19,7 +18,9 @@ def as_form(cls: Type[BaseModel]):
             inspect.Parameter(
                 model_field.alias,
                 inspect.Parameter.POSITIONAL_ONLY,
-                default=Form(...) if not model_field.required else Form(model_field.default),
+                default=Form(...)
+                if not model_field.required
+                else Form(model_field.default),
                 annotation=model_field.outer_type_,
             )
         )

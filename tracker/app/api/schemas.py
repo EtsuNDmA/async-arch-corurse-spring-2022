@@ -1,8 +1,7 @@
 from uuid import UUID
 
-from pydantic import BaseModel
-
 from app.db.models import TaskStatus
+from pydantic import BaseModel
 
 
 class Token(BaseModel):

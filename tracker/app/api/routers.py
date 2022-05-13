@@ -1,15 +1,14 @@
 import httpx
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import OAuth2PasswordRequestForm
-from starlette.requests import Request
-from starlette.responses import HTMLResponse, RedirectResponse, Response
-from starlette.templating import Jinja2Templates, _TemplateResponse
-
 from app.api.deps import get_current_active_user, get_task_repository
 from app.api.schemas import TaskRead, TaskWrite, UserRead
 from app.db.models import Role, Task, User
 from app.db.repositories import TaskRepository
 from app.settings.config import settings
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
+from starlette.requests import Request
+from starlette.responses import HTMLResponse, RedirectResponse, Response
+from starlette.templating import Jinja2Templates, _TemplateResponse
 
 router = APIRouter()
 
@@ -76,7 +75,8 @@ async def get_auth_token(
 ):
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            settings.OAUTH_TOKEN_URL, data={"username": form_data.username, "password": form_data.password}
+            settings.OAUTH_TOKEN_URL,
+            data={"username": form_data.username, "password": form_data.password},
         )
     response = Response(
         content=response.content,

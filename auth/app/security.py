@@ -1,12 +1,11 @@
 from datetime import datetime, timedelta
 
-from fastapi.security import OAuth2PasswordBearer
-from jose import jwt
-from passlib.context import CryptContext
-
 from app.db.models import User
 from app.db.repositories import UserRepository
 from app.settings.config import settings
+from fastapi.security import OAuth2PasswordBearer
+from jose import jwt
+from passlib.context import CryptContext
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 hasher = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -20,11 +19,15 @@ def get_password_hash(password) -> str:
     return hasher.hash(password)
 
 
-def create_access_token(data: dict, expires_delta: timedelta = timedelta(minutes=15)) -> str:
+def create_access_token(
+    data: dict, expires_delta: timedelta = timedelta(minutes=15)
+) -> str:
     data_to_encode = data.copy()
     expires_at = datetime.utcnow() + expires_delta
     data_to_encode.update({"exp": expires_at})
-    encoded_jwt = jwt.encode(data_to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    encoded_jwt = jwt.encode(
+        data_to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
+    )
     return encoded_jwt
 
 
