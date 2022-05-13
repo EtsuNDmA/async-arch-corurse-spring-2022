@@ -4,7 +4,8 @@ from datetime import datetime
 
 from app.db.session import Base
 from fastapi_utils.guid_type import GUID
-from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String
+from sqlalchemy import (Boolean, Column, DateTime, Enum, ForeignKey, Integer,
+                        String)
 from sqlalchemy.orm import relationship
 
 

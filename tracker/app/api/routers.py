@@ -1,8 +1,8 @@
 import httpx
 from aiokafka import AIOKafkaProducer
-
-from app.api.deps import get_current_active_user, get_task_repository, get_kafka_producer
-from app.api.schemas import TaskRead, TaskWrite, UserRead, TaskStream
+from app.api.deps import (get_current_active_user, get_kafka_producer,
+                          get_task_repository)
+from app.api.schemas import TaskRead, TaskStream, TaskWrite, UserRead
 from app.db.models import Role, Task, User
 from app.db.repositories import TaskRepository
 from app.settings.config import settings

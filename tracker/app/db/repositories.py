@@ -81,8 +81,12 @@ class TaskRepository:
             .scalar_subquery()
         )
         async with self.db.session() as session:
-            query = update(Task).values(assignee_id=random_assignee_id).returning(Task.id)
+            query = (
+                update(Task).values(assignee_id=random_assignee_id).returning(Task.id)
+            )
             updated_task_ids = await session.execute(query)
-            tasks = await session.execute(select(Task).where(Task.id.in_(updated_task_ids.scalars())))
+            tasks = await session.execute(
+                select(Task).where(Task.id.in_(updated_task_ids.scalars()))
+            )
             await session.commit()
             return tasks.scalars().all()
