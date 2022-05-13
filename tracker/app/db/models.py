@@ -17,7 +17,7 @@ class Role(str, enum.Enum):
 
 class User(Base):
     id = Column(Integer, primary_key=True, index=True)
-    public_id = Column(GUID, default=uuid.uuid4)
+    public_id = Column(GUID, unique=True, nullable=False, default=uuid.uuid4)
     username = Column(String, unique=True, nullable=False, index=True)
     is_active = Column(Boolean(), default=True)
     role = Column(Enum(Role), nullable=False)
@@ -30,10 +30,10 @@ class TaskStatus(str, enum.Enum):
 
 class Task(Base):
     id = Column(Integer, primary_key=True, index=True)
-    public_id = Column(GUID, default=uuid.uuid4)
+    public_id = Column(GUID, unique=True, nullable=False, default=uuid.uuid4)
     description = Column(String, nullable=False)
     status = Column(Enum(TaskStatus), nullable=False, default=TaskStatus.IN_PROGRESS)
-    assignee_id = Column(Integer, ForeignKey("user.id"), nullable=False)
+    assignee_id = Column(GUID, ForeignKey("user.public_id"), nullable=False)
     assignee = relationship("User")
     created_at = Column(DateTime(timezone=True), default=datetime.now)
     updated_at = Column(

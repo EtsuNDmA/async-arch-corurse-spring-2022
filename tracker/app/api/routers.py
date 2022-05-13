@@ -1,6 +1,8 @@
 import httpx
-from app.api.deps import get_current_active_user, get_task_repository
-from app.api.schemas import TaskRead, TaskWrite, UserRead
+from aiokafka import AIOKafkaProducer
+
+from app.api.deps import get_current_active_user, get_task_repository, get_kafka_producer
+from app.api.schemas import TaskRead, TaskWrite, UserRead, TaskStream
 from app.db.models import Role, Task, User
 from app.db.repositories import TaskRepository
 from app.settings.config import settings
@@ -113,10 +115,14 @@ async def create_task(
     task_to_create: TaskWrite,
     task_repository: TaskRepository = Depends(get_task_repository),
     current_user: User = Depends(get_current_active_user),
+    kafka_producer: AIOKafkaProducer = Depends(get_kafka_producer),
 ) -> Task:
     if current_user.role not in CAN_ADD_TASKS:
         raise HTTPException(status_code=403, detail="Forbidden")
     new_task: Task = await task_repository.create_task(task_to_create)
+    await kafka_producer.send(
+        "Task.Streaming", TaskStream.from_orm(new_task).json().encode()
+    )
     return new_task
 
 
@@ -128,12 +134,17 @@ async def create_task(
 async def shuffle_task(
     task_repository: TaskRepository = Depends(get_task_repository),
     current_user: User = Depends(get_current_active_user),
-) -> Task:
+    kafka_producer: AIOKafkaProducer = Depends(get_kafka_producer),
+) -> None:
     if current_user.role not in CAN_SHUFFLE_TASKS:
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    new_task: Task = await task_repository.shuffle_tasks()
-    return new_task
+    updated_tasks: Task = await task_repository.shuffle_tasks()
+    for task in updated_tasks:
+        await kafka_producer.send(
+            "Task.Streaming", TaskStream.from_orm(task).json().encode()
+        )
+    return None
 
 
 @router.get("/api/tasks/my", response_model=UserRead)

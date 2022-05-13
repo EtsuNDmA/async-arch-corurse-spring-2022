@@ -50,7 +50,7 @@
                 createAlert(response.statusText, '', '', 'danger', true, false, 'pageMessages');
             });
         localStorage.setItem('access_token', data.access_token)
-        window.location.replace("/tasks");
+        window.location.replace("/users/me");
     }
 </script>
 {% endblock %}

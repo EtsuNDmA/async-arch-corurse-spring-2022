@@ -21,7 +21,6 @@ class UserWrite(BaseModel):
 
 
 class UserRead(BaseModel):
-    id: int
     public_id: UUID
     username: str
     is_active: bool
@@ -40,6 +39,16 @@ class TaskRead(BaseModel):
     description: str
     status: TaskStatus
     assignee: UserRead
+
+    class Config:
+        orm_mode = True
+
+
+class TaskStream(BaseModel):
+    public_id: UUID
+    description: str
+    status: TaskStatus
+    assignee_id: UUID
 
     class Config:
         orm_mode = True

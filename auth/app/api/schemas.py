@@ -53,7 +53,6 @@ class UserWrite(BaseModel):
 
 
 class UserRead(BaseModel):
-    id: int
     public_id: UUID
     username: str
     is_active: bool

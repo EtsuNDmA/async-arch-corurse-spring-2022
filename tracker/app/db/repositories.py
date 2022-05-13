@@ -14,6 +14,12 @@ CAN_BE_TASK_ASSIGNEE = (Role.DEVELOPER, Role.ACCOUNTANT)
 class UserRepository:
     db: Database
 
+    async def get_user_by_username(self, username: str) -> User | None:
+        query = select(User).filter_by(username=username)
+        async with self.db.session() as session:
+            user = await session.execute(query)
+            return user.scalar()
+
     async def create_new_user(self, user_to_create: UserWrite) -> User:
         user = User(**user_to_create.dict())
         async with self.db.session() as session:
@@ -32,7 +38,7 @@ class TaskRepository:
             select(Task)
             .join(Task.assignee)
             .options(joinedload(Task.assignee))
-            .order_by("id")
+            .order_by(Task.id)
         )
         async with self.db.session() as session:
             tasks = await session.execute(query)
@@ -52,7 +58,7 @@ class TaskRepository:
     async def create_task(self, task_to_create: TaskWrite) -> Task:
         async with self.db.session() as session:
             random_assignee_id = (
-                select(User.id)
+                select(User.public_id)
                 .where(User.role.in_(CAN_BE_TASK_ASSIGNEE))
                 .order_by(func.random())
                 .limit(1)
@@ -64,7 +70,7 @@ class TaskRepository:
 
     async def shuffle_tasks(self) -> None:
         random_assignee_id = (
-            select(User.id)
+            select(User.public_id)
             .where(
                 Task.id
                 > 0,  # we need correlation to create random assignee_id for each row
@@ -75,7 +81,8 @@ class TaskRepository:
             .scalar_subquery()
         )
         async with self.db.session() as session:
-            query = update(Task).values(assignee_id=random_assignee_id)
-            await session.execute(query)
+            query = update(Task).values(assignee_id=random_assignee_id).returning(Task.id)
+            updated_task_ids = await session.execute(query)
+            tasks = await session.execute(select(Task).where(Task.id.in_(updated_task_ids.scalars())))
             await session.commit()
-        return None
+            return tasks.scalars().all()
