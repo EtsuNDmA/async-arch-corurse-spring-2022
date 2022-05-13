@@ -8,7 +8,7 @@ from starlette.responses import HTMLResponse, RedirectResponse
 from starlette.templating import Jinja2Templates, _TemplateResponse
 
 from app.api.deps import get_current_active_user, get_user_repository
-from app.api.schemas import Role, Token, UserWrite, UserRead
+from app.api.schemas import Role, Token, UserRead, UserWrite
 from app.db.models import User
 from app.db.repositories import UserRepository
 from app.security import authenticate_user, create_access_token

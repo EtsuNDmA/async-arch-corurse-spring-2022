@@ -35,6 +35,6 @@ class Task(Base):
     description = Column(String, nullable=False)
     status = Column(Enum(TaskStatus), nullable=False, default=TaskStatus.IN_PROGRESS)
     assignee_id = Column(Integer, ForeignKey("user.id"), nullable=False)
-    assignee = relationship('User')
+    assignee = relationship("User")
     created_at = Column(DateTime(timezone=True), default=datetime.now)
     updated_at = Column(DateTime(timezone=True), default=datetime.now, onupdate=datetime.now)
