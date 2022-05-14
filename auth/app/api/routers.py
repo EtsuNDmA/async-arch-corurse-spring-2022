@@ -6,6 +6,7 @@ from app.api.deps import (get_current_active_user, get_kafka_producer,
 from app.api.schemas import Role, Token, UserRead, UserWrite
 from app.db.models import User
 from app.db.repositories import UserRepository
+from app.events import UserCreated, UserStream
 from app.security import authenticate_user, create_access_token
 from app.settings.config import settings
 from fastapi import APIRouter, Depends, HTTPException
@@ -133,7 +134,10 @@ async def create_user(
     kafka_producer: AIOKafkaProducer = Depends(get_kafka_producer),
 ):
     new_user = await user_repository.create_new_user(user_to_create)
-    await send_task_cud_event(kafka_producer, new_user)
+
+    event = UserCreated(data=UserStream.from_orm(new_user))
+    await event.send(kafka_producer, topic=settings.KAFKA_USER_STREAMING_TOPIC)
+
     return new_user
 
 
@@ -154,11 +158,3 @@ async def read_users_by_username(
     user = user_repository.get_user_by_username(username)
 
     return user
-
-
-async def send_task_cud_event(kafka_producer: AIOKafkaProducer, user: User):
-    await kafka_producer.send(
-        topic=settings.KAFKA_USER_STREAMING_TOPIC,
-        value=UserRead.from_orm(user).json().encode(),
-        key=str(user.public_id).encode(),
-    )

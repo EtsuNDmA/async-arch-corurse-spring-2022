@@ -2,9 +2,11 @@ import httpx
 from aiokafka import AIOKafkaProducer
 from app.api.deps import (get_current_active_user, get_kafka_producer,
                           get_task_repository)
-from app.api.schemas import TaskRead, TaskStream, TaskWrite, UserRead
+from app.api.schemas import TaskRead, TaskWrite
 from app.db.models import Role, Task, User
 from app.db.repositories import TaskRepository
+from app.events import Event, TaskUpdated, TaskCreated, TaskAssigned, TaskAssignedData, TaskCompleted, \
+    TaskCompletedData, TaskStream
 from app.settings.config import settings
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
@@ -122,7 +124,13 @@ async def create_task(
     if current_user.role not in CAN_ADD_TASKS:
         raise HTTPException(status_code=403, detail="Forbidden")
     new_task: Task = await task_repository.create_task(task_to_create)
-    await send_task_cud_event(kafka_producer, new_task)
+
+    event = TaskCreated(data=TaskStream.from_orm(new_task))
+    await event.send(kafka_producer, topic=settings.KAFKA_TASK_STREAMING_TOPIC)
+
+    event = TaskAssigned(data=TaskAssignedData.from_orm(new_task))
+    await event.send(kafka_producer, topic=settings.KAFKA_TASK_LIFECYCLE_TOPIC)
+
     return new_task
 
 
@@ -139,7 +147,13 @@ async def complete_task(
     kafka_producer: AIOKafkaProducer = Depends(get_kafka_producer),
 ) -> Task:
     task = await task_repository.complete_task(task_id, current_user)
-    await send_task_cud_event(kafka_producer, task)
+
+    event = TaskUpdated(data=TaskStream.from_orm(task))
+    await event.send(kafka_producer, topic=settings.KAFKA_TASK_STREAMING_TOPIC)
+
+    event = TaskCompleted(data=TaskCompletedData.from_orm(task))
+    await event.send(kafka_producer, topic=settings.KAFKA_TASK_LIFECYCLE_TOPIC)
+
     return task
 
 
@@ -158,14 +172,9 @@ async def shuffle_task(
 
     updated_tasks: Task = await task_repository.shuffle_tasks()
 
-    # TODO send in batch
     for task in updated_tasks:
-        await send_task_cud_event(kafka_producer, task)
+        event = TaskUpdated(data=TaskStream.from_orm(task))
+        await event.send(kafka_producer, topic=settings.KAFKA_TASK_STREAMING_TOPIC)
 
-
-async def send_task_cud_event(kafka_producer: AIOKafkaProducer, task: Task):
-    await kafka_producer.send(
-        topic=settings.KAFKA_TASK_STREAMING_TOPIC,
-        value=TaskStream.from_orm(task).json().encode(),
-        key=str(task.public_id).encode(),
-    )
+        event = TaskAssigned(data=TaskAssignedData.from_orm(task))
+        await event.send(kafka_producer, topic=settings.KAFKA_TASK_LIFECYCLE_TOPIC)

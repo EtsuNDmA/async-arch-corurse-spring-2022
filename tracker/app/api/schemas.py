@@ -44,13 +44,3 @@ class TaskRead(BaseModel):
 
     class Config:
         orm_mode = True
-
-
-class TaskStream(BaseModel):
-    public_id: UUID
-    description: str
-    status: TaskStatus
-    assignee_id: UUID
-
-    class Config:
-        orm_mode = True
