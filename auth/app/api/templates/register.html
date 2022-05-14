@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block extra_head %}
+<style>
+    .register-form {
+        width: 340px;
+        margin: 50px auto;
+        font-size: 15px;
+    }
+
+    .register-form form {
+        margin-bottom: 15px;
+        background: #f7f7f7;
+        box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
+        padding: 30px;
+    }
+
+    .register-form h2 {
+        margin: 0 0 15px;
+    }
+
+    .form-control, .btn {
+        min-height: 38px;
+        border-radius: 2px;
+    }
+
+    .btn {
+        font-size: 15px;
+        font-weight: bold;
+    }
+</style>
+<script>
+    async function register() {
+        const loginForm = document.registerForm;
+        const formData = new FormData(loginForm);
+        const data = Object.fromEntries(formData.entries())
+
+        const response = await fetch('/api/users', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data),
+        })
+        .catch(console.error)
+        console.log(response)
+
+        window.location.replace("/login");
+    }
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="register-form">
+    <form name="registerForm">
+        <h2 class="text-center">Log in</h2>
+        <div class="form-group">
+            <input type="text" class="form-control" placeholder="Username" required="required" name="username">
+        </div>
+        <div class="form-group">
+            <input type="email" class="form-control" placeholder="Email" required="required" name="email">
+        </div>
+        <div class="form-group">
+            <input type="password" class="form-control" placeholder="Password" required="required" name="password">
+        </div>
+        <select class="form-control" required="required" name="role">
+            {% for role in available_roles %}
+            <option value="{{role}}">{{role}}</option>
+            {% endfor %}
+        </select>
+        <div class="form-group">
+            <button type="button" class="btn btn-primary btn-block" onclick="register()">Register</button>
+        </div>
+    </form>
+    <div class="text-center"><a href="/login">Login</a></div>
+</div>
+{% endblock %}

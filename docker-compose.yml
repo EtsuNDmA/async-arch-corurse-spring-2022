@@ -1,0 +1,128 @@
+version: '3.8'
+
+services:
+  auth-server:
+    build:
+      target: dev
+      context: ./auth
+      dockerfile: Dockerfile
+    image: auth:latest
+    hostname: auth-server
+    container_name: auth-server
+    volumes:
+      - ./auth/app:/popug/app
+    networks:
+      - popug-network
+    ports:
+      - '8085:8080'
+    restart: on-failure
+    depends_on:
+      - kafka
+      - postgresql
+    command: serve
+
+  tracker-server:
+    build:
+      target: dev
+      context: ./tracker
+      dockerfile: Dockerfile
+    image: tracker:latest
+    hostname: tracker-server
+    container_name: tracker-server
+    volumes:
+      - ./tracker/app:/popug/app
+    networks:
+      - popug-network
+    ports:
+      - '8086:8080'
+    restart: on-failure
+    depends_on:
+      - kafka
+      - postgresql
+    command: serve
+
+  tracker-consumer:
+    build:
+      target: dev
+      context: ./tracker
+      dockerfile: Dockerfile
+    image: tracker:latest
+    hostname: tracker-consumer
+    container_name: tracker-consumer
+    volumes:
+      - ./tracker/app:/popug/app
+    networks:
+      - popug-network
+    restart: on-failure
+    depends_on:
+      - kafka
+      - postgresql
+    command: consume
+
+  kafka:
+    image: confluentinc/cp-kafka:7.0.0
+    hostname: kafka
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
+      KAFKA_LISTENERS: 'PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+    volumes:
+      - ./kafka-entrypoint.sh:/tmp/kafka-entrypoint.sh
+    command: "bash -c 'if [ ! -f /tmp/kafka-entrypoint.sh ]; then echo \"ERROR: Did you forget the kafka-entrypoint.sh file that came with this docker-compose.yml file?\" && exit 1 ; else /tmp/kafka-entrypoint.sh && /etc/confluent/docker/run ; fi'"
+    logging:
+      driver: none
+    networks:
+      - popug-network
+
+  postgresql:
+    image: postgres:14.2
+    hostname: postgresql
+    container_name: postgresql
+    ports:
+      - "5432:5432"
+    tmpfs:
+      - /run
+      - /var/run
+      - /tmp
+      - /var/lib/postgresql/data
+    volumes:
+      - ./postgresql-initdb.sh:/docker-entrypoint-initdb.d/postgresql-initdb.sh
+    environment:
+      - POSTGRES_MULTIPLE_DATABASES=db_auth,db_tracker
+      - POSTGRES_INITDB_ARGS=--nosync
+      - POSTGRES_USER=popug
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    command: >
+      postgres
+        -c fsync=off
+        -c synchronous_commit=off
+        -c full_page_writes=off
+        -c log_statement=none
+        -c logging_collector=off
+        -c log_min_duration_statement=-1
+        -c log_min_error_statement=panic
+    logging:
+      driver: none
+    networks:
+      - popug-network
+
+networks:
+  popug-network:
+    driver: bridge
+    name: popug-network
