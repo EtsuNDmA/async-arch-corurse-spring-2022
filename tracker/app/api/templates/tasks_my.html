@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block extra_head %}
+<script>
+    getTasks = async function () {
+        const tasksData = await fetchAuthorized("/api/tasks/my")
+            .then((response) => {
+                if (response.ok) {
+                    return response.json();
+                }
+                return Promise.reject(response);
+            })
+            .catch((response) => {
+                console.log(response.status, response.statusText);
+                response.json().then((json) => {
+                    console.log(json);
+                });
+                createAlert(response.statusText, '', '', 'danger', true, false, 'pageMessages');
+            });
+        if (tasksData) tasksData.forEach(renderTask);
+    }
+
+    renderTask = function (task) {
+        let tasksTable = document.getElementById("tasks-table");
+        let tr = document.createElement('tr');
+
+        let td = tr.appendChild(document.createElement('td'));
+        if (task.status !== "done") {
+            td.innerHTML = '<button type="button" className="btn btn-primary" onClick="closeTasks(\'' + task.id + '\')">Complete</button>'
+        } else {
+            td.innerHTML = ''
+        }
+
+        renderCol(tr, task.public_id)
+        renderCol(tr, task.description)
+        renderCol(tr, task.status)
+        renderCol(tr, task.assignee.public_id)
+        renderCol(tr, task.assignee.username)
+        tasksTable.appendChild(tr);
+    }
+
+    renderCol = function (tr, data) {
+        let td = tr.appendChild(document.createElement('td'));
+        td.appendChild(document.createTextNode(data));
+    }
+
+    closeTasks = function (task_id) {
+        console.log(task_id)
+    }
+    closeTasks = async function (task_id) {
+        const access_token = localStorage.getItem('access_token');
+        await fetch('/api/tasks/' + task_id + '/complete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + access_token
+            },
+        })
+            .then((response) => {
+                if (response.ok) {
+                    document.location.reload();
+                    return
+                }
+                return Promise.reject(response);
+            })
+            .catch((response) => {
+                console.log(response.status, response.statusText);
+                response.json().then((json) => {
+                    console.log(json);
+                });
+                createAlert(response.statusText, '', '', 'danger', true, false, 'pageMessages');
+            });
+
+    }
+
+    getTasks()
+
+
+
+</script>
+{% endblock %}
+
+{% block content %}
+
+<div id="container" class="container-md">
+    <div id="pageMessages"></div>
+    <table id="tasks-table" class="table table-hover">
+        <thead>
+        <tr>
+            <th scope="col">Actions</th>
+            <th scope="col">Public Id</th>
+            <th scope="col">Description</th>
+            <th scope="col">Status</th>
+            <th scope="col">Assignee Public Id</th>
+            <th scope="col">Assignee Username</th>
+        </tr>
+        </thead>
+    </table>
+</div>
+{% endblock %}

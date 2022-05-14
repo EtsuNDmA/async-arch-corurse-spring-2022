@@ -133,9 +133,7 @@ async def create_user(
     kafka_producer: AIOKafkaProducer = Depends(get_kafka_producer),
 ):
     new_user = await user_repository.create_new_user(user_to_create)
-    await kafka_producer.send(
-        "User.Streaming", UserRead.from_orm(new_user).json().encode()
-    )
+    await send_task_cud_event(kafka_producer, new_user)
     return new_user
 
 
@@ -156,3 +154,11 @@ async def read_users_by_username(
     user = user_repository.get_user_by_username(username)
 
     return user
+
+
+async def send_task_cud_event(kafka_producer: AIOKafkaProducer, user: User):
+    await kafka_producer.send(
+        topic=settings.KAFKA_USER_STREAMING_TOPIC,
+        value=UserRead.from_orm(user).json().encode(),
+        key=str(user.public_id).encode(),
+    )

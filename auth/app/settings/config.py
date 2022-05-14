@@ -24,6 +24,7 @@ class AppSettings(BaseSettings):
     PG_DB: str
 
     KAFKA_BOOTSTRAP_SERVERS: str = "kafka:9092"
+    KAFKA_USER_STREAMING_TOPIC: str
 
     SECRET_KEY: str  # To generate SECRET_KEY use `openssl rand -hex 32`
     ALGORITHM = "HS256"

@@ -9,10 +9,35 @@
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
     <script>
-        function fetchAuthorized(url){
+        function fetchAuthorized(url) {
             let access_token = localStorage.getItem('access_token');
             let headers = {Authorization: 'Bearer ' + access_token};
             return fetch(url, {headers: headers})
+        }
+
+        function parseAccessToken(token) {
+            var base64Url = token.split('.')[1];
+            var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            var jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            return JSON.parse(jsonPayload);
+        }
+
+        function getLoggedInUserName() {
+            const access_token = localStorage.getItem('access_token');
+            if (access_token) {
+                let parsedToken = parseAccessToken(access_token)
+                return parsedToken.sub
+            }
+        }
+
+        function renderLoggedInUserName() {
+            let username = getLoggedInUserName()
+            if (username) {
+                let usernameEl = document.getElementById("username");
+                usernameEl.innerHTML = 'Username: ' + username
+            }
         }
 
         function createAlert(title, summary, details, severity, dismissible, autoDismiss, appendToId) {
@@ -93,10 +118,45 @@
                 }, 5000);
             }
         }
+        window.addEventListener('load', function () {
+            renderLoggedInUserName()
+        })
+
     </script>
     {% block extra_head %}{% endblock %}
 </head>
 <body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">Auth Service</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="/users">All users</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/users/me">My profile</a>
+            </li>
+
+        </ul>
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="/register">Register</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/login">Login</a>
+            </li>
+            <li class="nav-item navbar-text">
+                <div id="username"></div>
+            </li>
+        </ul>
+    </div>
+</nav>
+
 {% block content %}{% endblock %}
 </body>
 </html>

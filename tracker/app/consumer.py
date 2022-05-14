@@ -5,7 +5,6 @@ from app.db.repositories import UserRepository
 from app.db.session import Database
 from app.settings.config import settings
 from app.settings.logger import configure_logger
-from loguru import logger
 
 
 async def main():
@@ -15,22 +14,13 @@ async def main():
     )
     user_repository = UserRepository(db)
     consumer = AIOKafkaConsumer(
-        "User.Streaming",
+        settings.KAFKA_USER_STREAMING_TOPIC,
         bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVERS,
-        group_id="my-group",
+        group_id=settings.KAFKA_GROUP_ID,
     )
     await consumer.start()
     try:
         async for msg in consumer:
-            logger.info(
-                "consumed: {}, {}, {}, {}, {}, {}",
-                msg.topic,
-                msg.partition,
-                msg.offset,
-                msg.key,
-                msg.value,
-                msg.timestamp,
-            )
             await user_repository.create_new_user(UserWrite.parse_raw(msg.value))
     finally:
         await consumer.stop()

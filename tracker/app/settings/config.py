@@ -29,6 +29,10 @@ class AppSettings(BaseSettings):
     ALGORITHM = "HS256"
 
     KAFKA_BOOTSTRAP_SERVERS: str = "kafka:9092"
+    KAFKA_USER_STREAMING_TOPIC: str
+    KAFKA_TASK_STREAMING_TOPIC: str
+    KAFKA_TASK_LIFECYCLE_TOPIC: str
+    KAFKA_GROUP_ID: str
 
     @property
     def database_connection_url(self):

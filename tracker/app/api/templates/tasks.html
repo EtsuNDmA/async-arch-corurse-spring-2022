@@ -100,16 +100,7 @@
 {% block content %}
 
 <div id="container" class="container-md">
-    <div id="currentUser"></div>
     <div id="pageMessages"></div>
-    <!-- Button trigger modal -->
-    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
-        Add task
-    </button>
-    <button type="button" class="btn btn-primary" onclick="shuffleTasks()">
-        Shuffle tasks
-    </button>
-
     <!-- Modal -->
     <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
          aria-hidden="true">
@@ -134,7 +125,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="addTask()">Add task</button>
+                    <button type="button" class="btn btn-primary" onclick="addTask()" data-dismiss="modal">Add task</button>
                 </div>
             </div>
         </div>
@@ -150,5 +141,12 @@
         </tr>
         </thead>
     </table>
+    <!-- Button trigger modal -->
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+        Add task
+    </button>
+    <button type="button" class="btn btn-danger" onclick="shuffleTasks()">
+        Shuffle tasks
+    </button>
 </div>
 {% endblock %}

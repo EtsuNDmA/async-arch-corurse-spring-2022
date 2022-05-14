@@ -32,9 +32,11 @@ class UserRead(BaseModel):
 
 class TaskWrite(BaseModel):
     description: str
+    status: TaskStatus = TaskStatus.IN_PROGRESS
 
 
 class TaskRead(BaseModel):
+    id: int
     public_id: UUID
     description: str
     status: TaskStatus

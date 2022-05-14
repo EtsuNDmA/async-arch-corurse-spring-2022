@@ -88,20 +88,22 @@ async def get_auth_token(
     return response
 
 
-@router.get(
-    "/api/tasks",
-    description="Get all tasks",
-    name="tasks-list",
-    response_model=list[TaskRead],
-)
+@router.get("/api/tasks", response_model=list[TaskRead])
 async def read_all_tasks(
     task_repository: TaskRepository = Depends(get_task_repository),
     current_user: User = Depends(get_current_active_user),
 ):
     if current_user.role not in CAN_VIEW_TASKS:
         raise HTTPException(status_code=403, detail="Forbidden")
-    tasks = await task_repository.get_all_tasks()
-    return tasks
+    return await task_repository.get_all_tasks()
+
+
+@router.get("/api/tasks/my", response_model=list[TaskRead])
+async def read_tasks_my(
+    task_repository: TaskRepository = Depends(get_task_repository),
+    current_user: User = Depends(get_current_active_user),
+):
+    return await task_repository.get_tasks_assigned_to_user(current_user.public_id)
 
 
 @router.post(
@@ -120,10 +122,25 @@ async def create_task(
     if current_user.role not in CAN_ADD_TASKS:
         raise HTTPException(status_code=403, detail="Forbidden")
     new_task: Task = await task_repository.create_task(task_to_create)
-    await kafka_producer.send(
-        "Task.Streaming", TaskStream.from_orm(new_task).json().encode()
-    )
+    await send_task_cud_event(kafka_producer, new_task)
     return new_task
+
+
+@router.post(
+    "/api/tasks/{task_id}/complete",
+    description="Update task",
+    name="update-task",
+    response_model=TaskRead,
+)
+async def complete_task(
+    task_id: int,
+    task_repository: TaskRepository = Depends(get_task_repository),
+    current_user: User = Depends(get_current_active_user),
+    kafka_producer: AIOKafkaProducer = Depends(get_kafka_producer),
+) -> Task:
+    task = await task_repository.complete_task(task_id, current_user)
+    await send_task_cud_event(kafka_producer, task)
+    return task
 
 
 @router.post(
@@ -140,13 +157,15 @@ async def shuffle_task(
         raise HTTPException(status_code=403, detail="Forbidden")
 
     updated_tasks: Task = await task_repository.shuffle_tasks()
+
+    # TODO send in batch
     for task in updated_tasks:
-        await kafka_producer.send(
-            "Task.Streaming", TaskStream.from_orm(task).json().encode()
-        )
-    return None
+        await send_task_cud_event(kafka_producer, task)
 
 
-@router.get("/api/tasks/my", response_model=UserRead)
-async def read_users_me(current_user: User = Depends(get_current_active_user)):
-    return current_user
+async def send_task_cud_event(kafka_producer: AIOKafkaProducer, task: Task):
+    await kafka_producer.send(
+        topic=settings.KAFKA_TASK_STREAMING_TOPIC,
+        value=TaskStream.from_orm(task).json().encode(),
+        key=str(task.public_id).encode(),
+    )

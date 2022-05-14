@@ -18,10 +18,13 @@ class Role(str, enum.Enum):
 
 class User(Base):
     id = Column(Integer, primary_key=True, index=True)
-    public_id = Column(GUID, unique=True, nullable=False, default=uuid.uuid4)
+    public_id = Column(GUID, unique=True, nullable=False, index=True)
     username = Column(String, unique=True, nullable=False, index=True)
     is_active = Column(Boolean(), default=True)
     role = Column(Enum(Role), nullable=False)
+
+    def __repr__(self):
+        return f'User(username={self.username}, role={self.role})'
 
 
 class TaskStatus(str, enum.Enum):
@@ -40,3 +43,6 @@ class Task(Base):
     updated_at = Column(
         DateTime(timezone=True), default=datetime.now, onupdate=datetime.now
     )
+
+    def __repr__(self):
+        return f'Task(description={self.description}, status={self.status})'
