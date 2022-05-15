@@ -1,11 +1,8 @@
 from datetime import timedelta
 
 from aiokafka import AIOKafkaProducer
-from app.api.deps import (
-    get_current_active_user,
-    get_kafka_producer,
-    get_user_repository,
-)
+from app.api.deps import (get_current_active_user, get_kafka_producer,
+                          get_user_repository)
 from app.api.schemas import Role, Token, UserRead, UserWrite
 from app.db.models import User
 from app.db.repositories import UserRepository

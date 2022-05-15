@@ -24,6 +24,7 @@
         let tr = document.createElement('tr');
         renderCol(tr, task.public_id)
         renderCol(tr, task.description)
+        renderCol(tr, task.jira_id)
         renderCol(tr, task.status)
         renderCol(tr, task.assignee.public_id)
         renderCol(tr, task.assignee.username)
@@ -119,6 +120,7 @@
                             <div class="form-group">
                                 <input type="text" class="form-control" placeholder="Description" required="required"
                                        name="description">
+                                <input type="text" class="form-control" placeholder="Jira ID" name="jira_id">
                             </div>
                         </form>
                     </div>
@@ -135,6 +137,7 @@
         <tr>
             <th scope="col">Public Id</th>
             <th scope="col">Description</th>
+            <th scope="col">Jira ID</th>
             <th scope="col">Status</th>
             <th scope="col">Assignee Public Id</th>
             <th scope="col">Assignee Username</th>

@@ -2,9 +2,8 @@
 import logging
 import sys
 
-from loguru import logger
-
 from app.settings.config import AppSettings
+from loguru import logger
 
 
 class InterceptHandler(logging.Handler):

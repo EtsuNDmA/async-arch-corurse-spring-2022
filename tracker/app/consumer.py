@@ -3,13 +3,12 @@ from collections import defaultdict
 
 import aiorun
 from aiokafka import AIOKafkaConsumer, ConsumerRecord
-from loguru import logger
-
 from app.api.schemas import UserWrite
 from app.db.repositories import UserRepository
 from app.db.session import Database
 from app.settings.config import settings
 from app.settings.logger import configure_logger
+from loguru import logger
 
 
 async def main():
@@ -29,7 +28,9 @@ async def main():
             headers = get_headers(msg)
             if "user.created" in headers.get("event_name", []):
                 logger.debug("Got message {}", msg)
-                await user_repository.create_new_user(UserWrite.parse_obj(get_data(msg)))
+                await user_repository.create_new_user(
+                    UserWrite.parse_obj(get_data(msg))
+                )
     finally:
         await consumer.stop()
         await db.disconnect()

@@ -2,11 +2,11 @@ import enum
 import uuid
 from datetime import datetime
 
-from fastapi_utils.guid_type import GUID
-from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String
-from sqlalchemy.orm import relationship
-
 from app.db.session import Base
+from fastapi_utils.guid_type import GUID
+from sqlalchemy import (Boolean, Column, DateTime, Enum, ForeignKey, Integer,
+                        String)
+from sqlalchemy.orm import relationship
 
 
 class Role(str, enum.Enum):
@@ -36,11 +36,14 @@ class Task(Base):
     id = Column(Integer, primary_key=True, index=True)
     public_id = Column(GUID, unique=True, nullable=False, default=uuid.uuid4)
     description = Column(String, nullable=False)
+    jira_id = Column(String, nullable=True)
     status = Column(Enum(TaskStatus), nullable=False, default=TaskStatus.IN_PROGRESS)
     assignee_id = Column(GUID, ForeignKey("user.public_id"), nullable=False)
     assignee = relationship("User")
     created_at = Column(DateTime(timezone=True), default=datetime.now)
-    updated_at = Column(DateTime(timezone=True), default=datetime.now, onupdate=datetime.now)
+    updated_at = Column(
+        DateTime(timezone=True), default=datetime.now, onupdate=datetime.now
+    )
 
     def __repr__(self):
         return f"Task(description={self.description}, status={self.status})"
