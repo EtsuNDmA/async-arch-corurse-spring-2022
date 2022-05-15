@@ -1,9 +1,9 @@
+from typing import Optional
 from uuid import UUID
-
-from pydantic import BaseModel
 
 from app.db.models import TaskStatus
 from app.events.base import Event, EventMeta
+from pydantic import BaseModel
 
 
 class TaskEvent(Event):
@@ -16,6 +16,7 @@ class TaskEvent(Event):
 class TaskStream(BaseModel):
     public_id: UUID
     description: str
+    jira_id: Optional[str]
     status: TaskStatus
     assignee_id: UUID
 
@@ -24,12 +25,12 @@ class TaskStream(BaseModel):
 
 
 class TaskCreated(TaskEvent):
-    meta = EventMeta(version=1, name="task.created")
+    meta = EventMeta(version=2, name="task.created")
     data: TaskStream
 
 
 class TaskUpdated(TaskEvent):
-    meta = EventMeta(version=1, name="task.updated")
+    meta = EventMeta(version=2, name="task.updated")
     data: TaskStream
 
 

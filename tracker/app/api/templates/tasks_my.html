@@ -32,6 +32,7 @@
 
         renderCol(tr, task.public_id)
         renderCol(tr, task.description)
+        renderCol(tr, task.jira_id)
         renderCol(tr, task.status)
         renderCol(tr, task.assignee.public_id)
         renderCol(tr, task.assignee.username)
@@ -89,6 +90,7 @@
             <th scope="col">Actions</th>
             <th scope="col">Public Id</th>
             <th scope="col">Description</th>
+            <th scope="col">Jira ID</th>
             <th scope="col">Status</th>
             <th scope="col">Assignee Public Id</th>
             <th scope="col">Assignee Username</th>

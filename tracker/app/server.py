@@ -2,13 +2,12 @@ import asyncio
 
 import uvloop
 from aiokafka import AIOKafkaProducer
-from fastapi import FastAPI
-from loguru import logger
-
 from app.api.routers import router
 from app.db.session import Database
 from app.settings.config import AppSettings, settings
 from app.settings.logger import configure_logger
+from fastapi import FastAPI
+from loguru import logger
 
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 

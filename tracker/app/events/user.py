@@ -1,8 +1,7 @@
 from uuid import UUID
 
-from pydantic import BaseModel
-
 from app.events.base import Event, EventMeta
+from pydantic import BaseModel
 
 
 class UserStream(BaseModel):

@@ -1,8 +1,7 @@
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr
-
 from app.events.base import Event, EventMeta
+from pydantic import BaseModel, EmailStr
 
 
 class BaseUserEvent(Event):

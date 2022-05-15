@@ -2,12 +2,12 @@ import json
 from typing import Any
 
 from aiokafka import AIOKafkaProducer
+from app.settings.config import settings
 from jsonschema.exceptions import ValidationError
 from loguru import logger
 from pydantic import BaseModel
-from schema_registry.validator import Validator
 
-from app.settings.config import settings
+from schema_registry.validator import Validator
 
 validator = Validator(settings.SCHEMAS_ROOT_PATH)
 
