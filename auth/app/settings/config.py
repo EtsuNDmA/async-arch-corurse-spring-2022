@@ -31,6 +31,8 @@ class AppSettings(BaseSettings):
     ALGORITHM = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
+    SCHEMAS_ROOT_PATH: Path
+
     @property
     def database_connection_url(self):
         return f"postgresql+asyncpg://{self.PG_USER}:{self.PG_PASSWORD}@{self.PG_HOST}:{self.PG_PORT}/{self.PG_DB}"

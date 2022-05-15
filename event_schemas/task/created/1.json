@@ -1,0 +1,82 @@
+{
+  "title": "TaskCreated",
+  "type": "object",
+  "properties": {
+    "meta": {
+      "title": "Meta",
+      "default": {
+        "version": 1,
+        "name": "task.created"
+      },
+      "allOf": [
+        {
+          "$ref": "#/definitions/EventMeta"
+        }
+      ]
+    },
+    "data": {
+      "$ref": "#/definitions/TaskStream"
+    }
+  },
+  "required": [
+    "data"
+  ],
+  "definitions": {
+    "EventMeta": {
+      "title": "EventMeta",
+      "type": "object",
+      "properties": {
+        "version": {
+          "title": "Version",
+          "default": 1,
+          "type": "integer"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "TaskStatus": {
+      "title": "TaskStatus",
+      "description": "An enumeration.",
+      "enum": [
+        "in_progress",
+        "done"
+      ],
+      "type": "string"
+    },
+    "TaskStream": {
+      "title": "TaskStream",
+      "type": "object",
+      "properties": {
+        "public_id": {
+          "title": "Public Id",
+          "type": "string",
+          "format": "uuid"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/TaskStatus"
+        },
+        "assignee_id": {
+          "title": "Assignee Id",
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "public_id",
+        "description",
+        "status",
+        "assignee_id"
+      ]
+    }
+  }
+}

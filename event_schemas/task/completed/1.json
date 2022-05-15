@@ -1,0 +1,64 @@
+{
+  "title": "TaskCompleted",
+  "type": "object",
+  "properties": {
+    "meta": {
+      "title": "Meta",
+      "default": {
+        "version": 1,
+        "name": "task.completed"
+      },
+      "allOf": [
+        {
+          "$ref": "#/definitions/EventMeta"
+        }
+      ]
+    },
+    "data": {
+      "$ref": "#/definitions/TaskCompletedData"
+    }
+  },
+  "required": [
+    "data"
+  ],
+  "definitions": {
+    "EventMeta": {
+      "title": "EventMeta",
+      "type": "object",
+      "properties": {
+        "version": {
+          "title": "Version",
+          "default": 1,
+          "type": "integer"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "TaskCompletedData": {
+      "title": "TaskCompletedData",
+      "type": "object",
+      "properties": {
+        "public_id": {
+          "title": "Public Id",
+          "type": "string",
+          "format": "uuid"
+        },
+        "assignee_id": {
+          "title": "Assignee Id",
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "public_id",
+        "assignee_id"
+      ]
+    }
+  }
+}
