@@ -1,0 +1,79 @@
+{
+  "title": "UserCreated",
+  "type": "object",
+  "properties": {
+    "meta": {
+      "title": "Meta",
+      "default": {
+        "version": 1,
+        "name": "user.created"
+      },
+      "allOf": [
+        {
+          "$ref": "#/definitions/EventMeta"
+        }
+      ]
+    },
+    "data": {
+      "$ref": "#/definitions/UserStream"
+    }
+  },
+  "required": [
+    "data"
+  ],
+  "definitions": {
+    "EventMeta": {
+      "title": "EventMeta",
+      "type": "object",
+      "properties": {
+        "version": {
+          "title": "Version",
+          "default": 1,
+          "type": "integer"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "UserStream": {
+      "title": "UserStream",
+      "type": "object",
+      "properties": {
+        "public_id": {
+          "title": "Public Id",
+          "type": "string",
+          "format": "uuid"
+        },
+        "username": {
+          "title": "Username",
+          "type": "string"
+        },
+        "is_active": {
+          "title": "Is Active",
+          "type": "boolean"
+        },
+        "email": {
+          "title": "Email",
+          "type": "string",
+          "format": "email"
+        },
+        "role": {
+          "title": "Role",
+          "type": "string"
+        }
+      },
+      "required": [
+        "public_id",
+        "username",
+        "is_active",
+        "email",
+        "role"
+      ]
+    }
+  }
+}

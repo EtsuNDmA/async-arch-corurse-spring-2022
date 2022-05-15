@@ -1,4 +1,5 @@
 from enum import Enum
+from pathlib import Path
 
 from pydantic import BaseSettings
 
@@ -33,6 +34,8 @@ class AppSettings(BaseSettings):
     KAFKA_TASK_STREAMING_TOPIC: str
     KAFKA_TASK_LIFECYCLE_TOPIC: str
     KAFKA_GROUP_ID: str
+
+    SCHEMAS_ROOT_PATH: Path
 
     @property
     def database_connection_url(self):

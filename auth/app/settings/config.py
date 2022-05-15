@@ -1,4 +1,5 @@
 from enum import Enum
+from pathlib import Path
 
 from pydantic import BaseSettings
 
@@ -29,6 +30,8 @@ class AppSettings(BaseSettings):
     SECRET_KEY: str  # To generate SECRET_KEY use `openssl rand -hex 32`
     ALGORITHM = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES = 60
+
+    SCHEMAS_ROOT_PATH: Path
 
     @property
     def database_connection_url(self):
