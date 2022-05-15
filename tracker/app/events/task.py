@@ -1,38 +1,9 @@
-from typing import Any
 from uuid import UUID
 
-from aiokafka import AIOKafkaProducer
-from loguru import logger
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from app.db.models import TaskStatus
-
-
-class EventMeta(BaseModel):
-    version: int = 1
-    name: str
-
-
-class Event(BaseModel):
-    _meta: EventMeta = Field(exclude=True)
-    data: Any
-
-    @property
-    def key(self) -> None:
-        return None
-
-    async def send(self, kafka_producer: AIOKafkaProducer, topic: str) -> None:
-        kwargs = dict(
-            topic=topic,
-            value=self.json().encode(),
-            key=str(self.key).encode(),
-            headers=[
-                ("event_version", str(self._meta.version).encode()),
-                ("event_name", self._meta.name.encode()),
-            ]
-        )
-        logger.debug("Send event {}", kwargs)
-        await kafka_producer.send(**kwargs)
+from app.events.base import Event, EventMeta
 
 
 class TaskEvent(Event):
@@ -53,12 +24,12 @@ class TaskStream(BaseModel):
 
 
 class TaskCreated(TaskEvent):
-    _meta = EventMeta(version=1, name="TaskCreated")
+    meta = EventMeta(version=1, name="task.created")
     data: TaskStream
 
 
 class TaskUpdated(TaskEvent):
-    _meta = EventMeta(version=1, name="TaskUpdated")
+    meta = EventMeta(version=1, name="task.updated")
     data: TaskStream
 
 
@@ -72,7 +43,7 @@ class TaskAssignedData(BaseModel):
 
 
 class TaskAssigned(TaskEvent):
-    _meta = EventMeta(version=1, name="TaskAssigned")
+    meta = EventMeta(version=1, name="task.assigned")
     data: TaskAssignedData
 
 
@@ -86,5 +57,5 @@ class TaskCompletedData(BaseModel):
 
 
 class TaskCompleted(TaskEvent):
-    _meta = EventMeta(version=1, name="TaskCompleted")
+    meta = EventMeta(version=1, name="task.completed")
     data: TaskCompletedData

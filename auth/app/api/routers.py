@@ -1,12 +1,15 @@
 from datetime import timedelta
 
 from aiokafka import AIOKafkaProducer
-from app.api.deps import (get_current_active_user, get_kafka_producer,
-                          get_user_repository)
+from app.api.deps import (
+    get_current_active_user,
+    get_kafka_producer,
+    get_user_repository,
+)
 from app.api.schemas import Role, Token, UserRead, UserWrite
 from app.db.models import User
 from app.db.repositories import UserRepository
-from app.events import UserCreated, UserStream
+from app.events.user import UserCreated, UserStream
 from app.security import authenticate_user, create_access_token
 from app.settings.config import settings
 from fastapi import APIRouter, Depends, HTTPException

@@ -1,18 +1,29 @@
 import httpx
 from aiokafka import AIOKafkaProducer
-from app.api.deps import (get_current_active_user, get_kafka_producer,
-                          get_task_repository)
-from app.api.schemas import TaskRead, TaskWrite
-from app.db.models import Role, Task, User
-from app.db.repositories import TaskRepository
-from app.events import Event, TaskUpdated, TaskCreated, TaskAssigned, TaskAssignedData, TaskCompleted, \
-    TaskCompletedData, TaskStream
-from app.settings.config import settings
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, RedirectResponse, Response
 from starlette.templating import Jinja2Templates, _TemplateResponse
+
+from app.api.deps import (
+    get_current_active_user,
+    get_kafka_producer,
+    get_task_repository,
+)
+from app.api.schemas import TaskRead, TaskWrite
+from app.db.models import Role, Task, User
+from app.db.repositories import TaskRepository
+from app.events.task import (
+    TaskAssigned,
+    TaskAssignedData,
+    TaskCompleted,
+    TaskCompletedData,
+    TaskCreated,
+    TaskStream,
+    TaskUpdated,
+)
+from app.settings.config import settings
 
 router = APIRouter()
 

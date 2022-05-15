@@ -27,7 +27,7 @@ async def main():
     try:
         async for msg in consumer:
             headers = get_headers(msg)
-            if "UserCreated" in headers.get("event_name", []):
+            if "user.created" in headers.get("event_name", []):
                 logger.debug("Got message {}", msg)
                 await user_repository.create_new_user(UserWrite.parse_obj(get_data(msg)))
     finally:

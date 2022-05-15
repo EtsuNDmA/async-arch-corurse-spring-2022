@@ -1,11 +1,12 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from app.api.schemas import TaskWrite, UserWrite
-from app.db.models import Role, Task, User, TaskStatus
-from app.db.session import Database
 from sqlalchemy import func, select, update
-from sqlalchemy.orm import selectinload, joinedload
+from sqlalchemy.orm import joinedload, selectinload
+
+from app.api.schemas import TaskWrite, UserWrite
+from app.db.models import Role, Task, TaskStatus, User
+from app.db.session import Database
 
 CAN_BE_TASK_ASSIGNEE = (Role.DEVELOPER, Role.ACCOUNTANT)
 
@@ -34,23 +35,14 @@ class TaskRepository:
     db: Database
 
     async def get_all_tasks(self) -> list[Task]:
-        query = (
-            select(Task)
-            .options(joinedload(Task.assignee, innerjoin=True))
-            .order_by(Task.id)
-        )
+        query = select(Task).options(joinedload(Task.assignee, innerjoin=True)).order_by(Task.id)
         async with self.db.session() as session:
             tasks = await session.execute(query)
             return tasks.scalars().all()
 
     async def get_task_by_id(self, task_id: int) -> Task | None:
         async with self.db.session() as session:
-            query = (
-                select(Task)
-                .filter_by(id=task_id)
-                .join(Task.assignee)
-                .options(selectinload(Task.assignee))
-            )
+            query = select(Task).filter_by(id=task_id).join(Task.assignee).options(selectinload(Task.assignee))
             task = await session.execute(query)
             return task.scalar()
 
@@ -68,10 +60,7 @@ class TaskRepository:
     async def create_task(self, task_to_create: TaskWrite) -> Task:
         async with self.db.session() as session:
             random_assignee_id = (
-                select(User.public_id)
-                .where(User.role.in_(CAN_BE_TASK_ASSIGNEE))
-                .order_by(func.random())
-                .limit(1)
+                select(User.public_id).where(User.role.in_(CAN_BE_TASK_ASSIGNEE)).order_by(func.random()).limit(1)
             )
             task = Task(assignee_id=random_assignee_id, **task_to_create.dict())
             session.add(task)
@@ -96,10 +85,7 @@ class TaskRepository:
                 .values(assignee_id=random_assignee_id)
                 .returning(Task.id)
             )
-            tasks = await session.execute(
-                select(Task)
-                .where(Task.id.in_(updated_task_ids.scalars()))
-            )
+            tasks = await session.execute(select(Task).where(Task.id.in_(updated_task_ids.scalars())))
             await session.commit()
             return tasks.scalars().all()
 
