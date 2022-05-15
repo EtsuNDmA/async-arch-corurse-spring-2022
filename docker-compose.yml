@@ -11,6 +11,7 @@ services:
     container_name: auth-server
     volumes:
       - ./auth/app:/popug/app
+      - ./event-schemas:/popug/event-schemas
     networks:
       - popug-network
     ports:
@@ -31,6 +32,7 @@ services:
     container_name: tracker-server
     volumes:
       - ./tracker/app:/popug/app
+      - ./event-schemas:/popug/event-schemas
     networks:
       - popug-network
     ports:
@@ -51,6 +53,7 @@ services:
     container_name: tracker-consumer
     volumes:
       - ./tracker/app:/popug/app
+      - ./event-schemas:/popug/event-schemas
     networks:
       - popug-network
     restart: on-failure
